@@ -545,10 +545,18 @@ function abiertaBody(){
   let h=`<div class="ruta"><span>Factor 12 · Aseguramiento de la alta calidad del programa</span><span>Característica 51 · Resultados de la cultura de la calidad</span><span>Aspecto 69</span></div>
   <div class="card" style="background:var(--fondo)"><b>¿Por qué quedó allí?</b> Es la única pregunta abierta de la encuesta y pide el motivo de la recomendación (pregunta 115). Esos motivos muestran qué logros reconoce la comunidad, que es lo que pide el Aspecto 69. Como es abierta, no tiene escala y no suma al puntaje: se lee por temas.</div>
   <div class="mini"><div><b>${n[TOT]['2021']}</b><span>Respuestas 2021</span></div><div><b>${n[TOT]['2025']}</b><span>Respuestas 2025</span></div><div><b>${o.temas.length}</b><span>Temas codificados</span></div><div><b>${esc((temas[0]||{}).tema||'—')}</b><span>Tema más mencionado</span></div></div>
-  <h3>Todas las respuestas, agrupadas por tema</h3>
-  <div class="howto"><strong>Cómo leer:</strong> % de personas que mencionaron cada tema; una persona puede mencionar varios, por eso la suma pasa de 100 %. Abre un tema para ver las razones exactas.</div>
+  <h3>Qué respondió cada persona</h3>
+  <div class="howto"><strong>Cómo leer:</strong> el Excel no trae las frases textuales; trae cada respuesta ya clasificada en una <b>razón</b>. Esta tabla muestra cada razón y <b>cuántas personas</b> la dieron. Ejemplo: «2 de 36» significa que 2 de los 36 estudiantes que respondieron dieron esa razón. Una persona puede dar más de una razón.</div>
   <div class="segbtns">${segs.map(s=>`<button data-act="oseg" data-s="${s}" class="${s===OSEG?'cur':''}">${s===TOT?'Todos':s}</button>`).join('')}</div>`;
-  h+=temas.map(t=>{const p=t.pct[OSEG]||{};return `<details class="tema"><summary><b>${esc(t.tema)}</b><span>2021: ${f1(p['2021'])} % · <b>2025: ${f1(p['2025'])} %</b></span></summary><ul>${(t.sub||[]).filter(s=>(s.pct[OSEG]||{})['2021']||(s.pct[OSEG]||{})['2025']).map(s=>`<li>${esc(s.label)} <span class="muted">(2021: ${f1(s.pct[OSEG]['2021'])} % · 2025: ${f1(s.pct[OSEG]['2025'])} %)</span></li>`).join('')||'<li class="muted">Sin razones para este grupo.</li>'}</ul></details>`;}).join('');
+  const N21=(n[OSEG]||{})['2021']||0,N25=(n[OSEG]||{})['2025']||0,pp=(x,N)=>x?Math.round(x*N/100):0;
+  const all=[];o.temas.forEach(t=>(t.sub||[]).forEach(s=>{const q=s.pct[OSEG]||{};const a21=pp(q['2021'],N21),a25=pp(q['2025'],N25);if(a21||a25)all.push({r:s.label.trim(),t:t.tema,a21,a25});}));
+  (o.otros||[]).forEach(s=>{const q=s.pct[OSEG]||{};const a21=pp(q['2021'],N21),a25=pp(q['2025'],N25);if(a21||a25)all.push({r:s.label.trim(),t:'Sin razón',a21,a25});});
+  all.sort((x,y)=>y.a25-x.a25||y.a21-x.a21);
+  h+=`<p class="muted" style="margin:4px 0 8px">Respondieron: <b>${N25}</b> personas en 2025 y <b>${N21}</b> en 2021 (${OSEG===TOT?'todos los grupos':OSEG}).</p>
+  <div class="tablewrap"><table><thead><tr><th>Razón que dieron</th><th>Tema</th><th>Personas 2025</th><th>Personas 2021</th></tr></thead><tbody>${all.map(x=>`<tr><td>${esc(x.r)}</td><td class="muted">${esc(x.t)}</td><td class="num">${x.a25?`<b>${x.a25}</b> de ${N25}`:'—'}</td><td class="num">${x.a21?`${x.a21} de ${N21}`:'—'}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Este grupo no dio razones.</td></tr>'}</tbody></table></div>
+  <h3 style="margin-top:18px">Resumen por tema</h3>
+  <div class="howto"><strong>Cómo leer:</strong> cuántas personas mencionaron al menos una razón de cada tema. Abre un tema para ver sus razones.</div>`;
+  h+=temas.map(t=>{const p=t.pct[OSEG]||{},c25=pp(p['2025'],N25),c21=pp(p['2021'],N21);return `<details class="tema"><summary><b>${esc(t.tema)}</b><span>2025: <b>${c25} de ${N25}</b> (${f1(p['2025'])} %) · 2021: ${c21} de ${N21}</span></summary><ul>${(t.sub||[]).filter(s=>(s.pct[OSEG]||{})['2021']||(s.pct[OSEG]||{})['2025']).map(s=>`<li>${esc(s.label.trim())} <span class="muted">(2025: ${pp(s.pct[OSEG]['2025'],N25)} · 2021: ${pp(s.pct[OSEG]['2021'],N21)} personas)</span></li>`).join('')||'<li class="muted">Sin razones para este grupo.</li>'}</ul></details>`;}).join('');
   h+=`<p class="muted">Fuente: ${esc(o.fuente)}.</p>`;return h;
 }
 
